@@ -17,7 +17,7 @@ The implementation is based on ideas expressed in [Generating Numerical Approxim
 Numerical approximations are all over texts based on the data:
 
 ```
-- Water temperature is bellow 10C (input data would be 9.53C)
+- Water temperature is below 10C (input data would be 9.53C)
 - A third of students failed the exam (34.3%)
 - Q2 sales were around 1M$ (1,002,184 $)
 ```
