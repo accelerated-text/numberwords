@@ -5,7 +5,7 @@
 Number Words will build numeric expressions for natural numbers, percentages and fractions. For example:
 
 * `0.231` will be converted to `less than a quarter`,
-* `102` to `over one hunderd`.
+* `102` to `over one hundred`.
 
 Supports multiple languages.
 
