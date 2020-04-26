@@ -19,7 +19,7 @@ Numerical approximations are all over texts based on the data:
 ```
 - Water temperature is below 10C (input data would be 9.53C)
 - A third of students failed the exam (34.3%)
-- Q2 sales were around 1M$ (1,002,184 $)
+- Q2 sales were over 1M$ (1,002,184 $)
 ```
 
 Numeric data providing information about some metrics of interest is often a number with the precision we do not need. If we see 9.382%, it is likely that the information we need is - *almost 10%* - instead of the precise number. Furthermore, different approximation strategies are often used in the report involving the same metrics. At the beginning of the report we might say *almost 10%* or "below 10%" while later in the text, we might choose a more precise expression - *around 9.4%*.
