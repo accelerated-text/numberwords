@@ -24,7 +24,7 @@ Numerical approximations are all over texts based on the data:
 
 Numeric data providing information about some metrics of interest is often a number with the precision we do not need. If we see 9.382%, it is likely that the information we need is - *almost 10%* - instead of the precise number. Furthermore, different approximation strategies are often used in the report involving the same metrics. At the beginning of the report we might say *almost 10%* or "below 10%" while later in the text, we might choose a more precise expression - *around 9.4%*.
 
-**Number Words** will help you build such numerical approximations making them available for the text generation systems.
+*Number Words* will help you build such numerical approximations. Making them available for the text generation systems.
 
 ## Features
 
