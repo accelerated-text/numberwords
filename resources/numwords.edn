@@ -16,4 +16,14 @@
                           1/3  #{"a third"}
                           0.33 #{"a third"}
                           1/2  #{"half"}
-                          0.5  #{"a half"}}}}
+                          0.5  #{"a half"}}}
+
+ :pt {:hedges            {:equal  #{"exatamente"}
+                          :around #{"cerca de" "aproximadamente"}
+                          :more   #{"mais de" "acima de"}
+                          :less   #{"menos de" "abaixo de"}}
+      :favorite-numbers {1/4  #{"um quarto"}
+                          1/3  #{"um terço"}
+                          0.33 #{"um terço"}
+                          1/2  #{"metade"}
+                          0.5  #{"metade"}}}}
