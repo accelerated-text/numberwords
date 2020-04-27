@@ -57,6 +57,7 @@ Numeric approximation has two functionality points which are language dependent
 Currently supported languages:
 * English
 * German
+* Portuguese
   
 ## Usage
 
