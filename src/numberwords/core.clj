@@ -43,7 +43,7 @@
                              :natural-num (s/and number? pos-int?)))
 
 ;;supported languages
-(s/def :numwords/language #{:en :de})
+(s/def :numwords/language (cfg/supported-langauges))
 
 (defn distances-from-edges
   [actual-value [start end]]

@@ -7,6 +7,10 @@
    :de (RuleBasedNumberFormat. Locale/GERMAN
                                RuleBasedNumberFormat/SPELLOUT)})
 
+(defn num-formater-for [language]
+  (RuleBasedNumberFormat. (Locale/forLanguageTag (name language))
+                          RuleBasedNumberFormat/SPELLOUT))
+
 (defn number->text
-  ([language number] (.format (get spellout language) number))
+  ([language number] (.format (num-formater-for language) number))
   ([number] (number->text :en number)))
