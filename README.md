@@ -93,7 +93,7 @@ Number Words exposes approximation functionality through `approximations` functi
 Hedges, favorite numbers can be modified and new languages added via changes to a configuration file - `resources/numwords.edn`
 
 ```
-{;;Configuration is strucutured by the language 
+{;;Configuration is structured by the language 
  :en {
       ;;Hedges section specifies which words are associated with given actual to given value relations
       :hedges {:equal  #{"exactly"}
