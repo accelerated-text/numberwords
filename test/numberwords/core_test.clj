@@ -51,10 +51,20 @@
 
 (deftest hedge-identification
   (are [result lang value step] (= result (hedges (approximations lang value step)))
-    [#{"exactly"} nil nil nil]  :en 0 1/4
-    [nil #{"around" "approximately" "about"}
-     #{"less than" "under" "nearly"} #{"more than" "over"}]
-    :en 0.54M 1/10))
+    [#{"exactly"} nil nil nil]
+    :en 0 1/4
+
+    [nil #{"around" "approximately" "about"} #{"less than" "under" "nearly"} #{"more than" "over"}]
+    :en 0.54M 1/10
+
+    [nil #{"apie" "apytiksliai"} #{"mažiau nei" "mažiau"} #{"virš" "daugiau nei"}]
+    :lt 0.54M 1/10
+
+    [nil #{"etwa" "ungefähr"} #{"unter" "weniger als"} #{"über" "mehr als"}]
+    :de 0.54M 1/10
+
+    [nil #{"cerca de" "aproximadamente"} #{"menos de" "abaixo de"} #{"mais de" "acima de"}]
+    :pt 0.54M 1/10))
 
 (deftest actual-values-at-extremes
   (are [result lang value step] (= result (get-in (approximations lang value step)
@@ -71,8 +81,11 @@
 
   (are [result lang value step] (= result (fav-nums (approximations lang value step)))
     [#{"a half"} nil #{"a half"}] :en 0.54M 1/10
-    [nil #{"a quarter"} nil]        :en 1/10  1/4
-    [nil #{"a quarter"} nil]        :en 0.1M  1/4))
+    [nil #{"a quarter"} nil]      :en 1/10  1/4
+    [nil #{"a quarter"} nil]      :en 0.1M  1/4
+    [nil #{"ketvirtis"} nil]      :lt 0.1M  1/4
+    [nil #{"Viertel"} nil]      :de 0.1M  1/4
+    [nil #{"um quarto"} nil]      :pt 0.1M  1/4))
 
 (deftest non-special-given-values
   (are [result lang value step] (= result (given-vals (approximations lang value step)))

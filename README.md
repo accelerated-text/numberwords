@@ -55,8 +55,9 @@ Numeric approximation has two functionality points which are language dependent
 * *Text* number to text translation for a *given value*. For this translation Number Words relies on [ICU4J](https://unicode-org.github.io/icu-docs/apidoc/released/icu4j/).
 
 Currently supported languages:
-* English
 * German
+* English
+* Lithuanian 
 * Portuguese
   
 ## Usage

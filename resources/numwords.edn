@@ -1,29 +1,33 @@
-{:en {:hedges            {:equal  #{"exactly"}
-                          :around #{"around" "approximately" "about"}
-                          :more   #{"more than" "over"}
-                          :less   #{"less than" "under" "nearly"}}
+{:en {:hedges           {:equal  #{"exactly"}
+                         :around #{"around" "approximately" "about"}
+                         :more   #{"more than" "over"}
+                         :less   #{"less than" "under" "nearly"}}
       :favorite-numbers {1/4  #{"a quarter"}
-                          1/3  #{"a third"}
-                          0.33 #{"a third"}
-                          1/2  #{"a half"}
-                          0.5  #{"a half"}}}
+                         1/3  #{"a third"}
+                         1/2  #{"a half"}}}
 
- :de {:hedges            {:equal  #{"genau"}
-                          :around #{"ungefähr" "etwa"}
-                          :more   #{"mehr als" "über"}
-                          :less   #{"weniger als" "unter"}}
-      :favorite-numbers {1/4  #{"a quarter"}
-                          1/3  #{"a third"}
-                          0.33 #{"a third"}
-                          1/2  #{"half"}
-                          0.5  #{"a half"}}}
+ :de {:hedges           {:equal  #{"genau"}
+                         :around #{"ungefähr" "etwa"}
+                         :more   #{"mehr als" "über"}
+                         :less   #{"weniger als" "unter"}}
+      :favorite-numbers {1/4  #{"Viertel"}
+                         1/3  #{"Drittel"}
+                         1/2  #{"Hälfte"}}}
 
- :pt {:hedges            {:equal  #{"exatamente"}
-                          :around #{"cerca de" "aproximadamente"}
-                          :more   #{"mais de" "acima de"}
-                          :less   #{"menos de" "abaixo de"}}
+ :pt {:hedges           {:equal  #{"exatamente"}
+                         :around #{"cerca de" "aproximadamente"}
+                         :more   #{"mais de" "acima de"}
+                         :less   #{"menos de" "abaixo de"}}
       :favorite-numbers {1/4  #{"um quarto"}
-                          1/3  #{"um terço"}
-                          0.33 #{"um terço"}
-                          1/2  #{"metade"}
-                          0.5  #{"metade"}}}}
+                         1/3  #{"um terço"}
+                         0.33 #{"um terço"}
+                         1/2  #{"metade"}
+                         0.5  #{"metade"}}}
+
+ :lt {:hedges           {:equal  #{"lygiai"}
+                         :around #{"apie" "apytiksliai"}
+                         :more   #{"daugiau nei" "virš"}
+                         :less   #{"mažiau nei" "mažiau"}}
+      :favorite-numbers {1/4 #{"ketvirtis"}
+                         1/3 #{"trečdalis"}
+                         1/2 #{"pusė"}}}}
