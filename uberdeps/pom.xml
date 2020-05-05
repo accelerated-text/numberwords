@@ -3,8 +3,18 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>numberwords</groupId>
   <artifactId>numberwords</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.4-SNAPSHOT</version>
   <name>numberwords</name>
+
+  <developers>
+    <developer>
+      <name>Žygimantas Medelis</name>
+      <email>zm@tokenmill.ai</email>
+      <organization>TokenMill</organization>
+      <organizationUrl>http://www.tokenmill.ai</organizationUrl>
+    </developer>
+  </developers>
+
   <dependencies>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -17,13 +27,122 @@
       <version>65.1</version>
     </dependency>
   </dependencies>
+
+ <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.1.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadoc</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.1.0</version>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>3.0.0-M1</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <build>
     <sourceDirectory>src</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>src</directory>
+      </resource>
+      <resource>
+        <directory>classes</directory>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.2</version>
+        <executions>
+          <execution>
+            <id>empty-javadoc-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>javadoc</classifier>
+              <classesDirectory>${basedir}/javadoc</classesDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
+
+  <scm>
+    <url>https://github.com/tokenmill/numberwords</url>
+    <connection>scm:git:git://github.com/tokenmill/numberwords.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/tokenmill/numberwords.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
   <repositories>
     <repository>
       <id>clojars</id>
       <url>https://repo.clojars.org/</url>
     </repository>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
   </repositories>
+
+  <distributionManagement>
+    <snapshotRepository>
+        <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 </project>
