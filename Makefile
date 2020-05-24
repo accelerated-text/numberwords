@@ -5,3 +5,9 @@ lint:
 test:
 	clojure -A:test:runner
 
+recompile-java-interface:
+	rm -rf classes
+	mkdir classes
+	clojure -e "(require 'numberwords.java) (compile 'numberwords.java)"
+
+
