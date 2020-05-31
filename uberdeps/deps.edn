@@ -1,4 +1,0 @@
-{:deps {uberdeps {:mvn/version "0.1.10"}}
- :aliases {:deploy {:extra-deps {deps-deploy {:mvn/version "RELEASE"}}
-                    :main-opts ["-m" "deps-deploy.deps-deploy" "deploy"
-                                "../target/numberwords-1.0.4-SNAPSHOT.jar"]}}}

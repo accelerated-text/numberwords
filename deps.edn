@@ -1,10 +1,19 @@
-{:paths   ["src" "resources"]
+{:paths   ["src" "resources" "classes"]
  :deps    {org.clojure/clojure {:mvn/version "1.10.1"}
            com.ibm.icu/icu4j   {:mvn/version "65.1"}}
- :aliases {:dev    {:extra-deps {org.clojure/test.check {:mvn/version "RELEASE"}}}
-           :test   {:extra-paths ["test"]
-                    :extra-deps  {org.clojure/test.check {:mvn/version "RELEASE"}}}
-           :runner {:extra-deps {com.cognitect/test-runner
-                                 {:git/url "https://github.com/cognitect-labs/test-runner"
-                                  :sha     "76568540e7f40268ad2b646110f237a60295fa3c"}}
-                    :main-opts  ["-m" "cognitect.test-runner"]}}}
+ :aliases {:dev     {:extra-deps {org.clojure/test.check {:mvn/version "RELEASE"}}}
+           :uberjar {:extra-deps {luchiniatwork/cambada {:mvn/version "1.0.2"}}
+                     :main-opts  ["-m" "cambada.uberjar"
+                                  "-m" "ai.tokenmill.numberwords.NumberWords"
+                                  "--app-group-id" "ai.tokenmill.numberwords"
+                                  "--app-artifact-id" "numberwords"
+                                  "--app-version" "1.0.2"]}
+           :deploy  {:extra-deps {deps-deploy {:mvn/version "RELEASE"}}
+                     :main-opts  ["-m" "deps-deploy.deps-deploy" "deploy"
+                                  "target/numberwords-1.0.2.jar"]}
+           :test    {:extra-paths ["test"]
+                     :extra-deps  {org.clojure/test.check {:mvn/version "RELEASE"}}}
+           :runner  {:extra-deps {com.cognitect/test-runner
+                                  {:git/url "https://github.com/cognitect-labs/test-runner"
+                                   :sha     "76568540e7f40268ad2b646110f237a60295fa3c"}}
+                     :main-opts  ["-m" "cognitect.test-runner"]}}}

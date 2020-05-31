@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
+  <modelVersion>4.0.0</modelVersion>
+    
+  <groupId>ai.tokenmill.numberwords</groupId>
+    
+  <artifactId>numberwords</artifactId>
+    
+  <version>1.0.2</version>
+    
+  <name>numberwords</name>
+    
+  <description>Convert a number to an approximated text expression: from '0.23' to 'less than a quarter'.</description>
+    
+  <url>https://github.com/tokenmill/numberwords</url>
+    
+  <licenses>
+        
+    <license>
+            
+      <name>The Apache License, Version 2.0</name>
+            
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+          
+    </license>
+      
+  </licenses>
+    
+  <developers>
+        
+    <developer>
+            
+      <name>Žygimantas Medelis</name>
+            
+      <email>zm@tokenmill.ai</email>
+            
+      <organization>TokenMill</organization>
+            
+      <organizationUrl>https://www.tokenmill.ai</organizationUrl>
+          
+    </developer>
+      
+  </developers>
+    
+  <properties>
+        
+    <maven.compiler.source>1.8</maven.compiler.source>
+        
+    <maven.compiler.target>1.8</maven.compiler.target>
+        
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      
+  </properties>
+    
+  <dependencies>
+        
+    <dependency>
+            
+      <groupId>org.clojure</groupId>
+            
+      <artifactId>clojure</artifactId>
+            
+      <version>1.10.1</version>
+          
+    </dependency>
+        
+    <dependency>
+            
+      <groupId>com.ibm.icu</groupId>
+            
+      <artifactId>icu4j</artifactId>
+            
+      <version>65.1</version>
+          
+    </dependency>
+      
+  </dependencies>
+    
+  <build>
+        
+    <sourceDirectory>src</sourceDirectory>
+      
+  </build>
+    
+  <repositories>
+        
+    <repository>
+            
+      <id>clojars</id>
+            
+      <url>https://repo.clojars.org/</url>
+          
+    </repository>
+      
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>clojars</id>
+      <name>Clojars repository</name>
+      <url>https://clojars.org/repo</url>
+    </repository>
+  </distributionManagement>
+    
+  <scm>
+        
+    <url>https://github.com/tokenmill/numberwords</url>
+        
+    <connection>scm:git:git://github.com/tokenmill/numberwords.git</connection>
+        
+    <developerConnection>scm:git:ssh://git@github.com/tokenmill/numberwords.git</developerConnection>
+        
+    <tag>HEAD</tag>
+      
+  </scm>
+  
+</project>

@@ -1,4 +1,4 @@
-[![Clojars Project](https://img.shields.io/clojars/v/numberwords.svg)](https://clojars.org/numberwords)
+[![Clojars Project](https://img.shields.io/clojars/v/ai.tokenmill.numberwords/numberwords.svg)](https://clojars.org/ai.tokenmill.numberwords/numberwords)
 
 # Number Words
 
@@ -12,7 +12,6 @@ Supports multiple languages.
 The implementation is based on ideas expressed in [Generating Numerical Approximations](https://www.mitpressjournals.org/doi/full/10.1162/COLI_a_00086).
 
 ## Numerical Approximations
-
 
 Numerical approximations are all over texts based on the data:
 
@@ -69,6 +68,24 @@ Number Words exposes approximation functionality through `approximations` functi
 * `actual-value` - the number to approximate
 * `scale` - at which the approximation is to be performed.
 
+### Installation
+
+`Number Words` is available as a Maven artifact from [Clojars](https://clojars.org/ai.tokenmill.numberwords/numberwords).
+
+### Clojure
+
+_Leiningen_
+```
+[ai.tokenmill.numberwords/numberwords "1.0.2"]
+```
+
+_deps.edn_
+```
+ai.tokenmill.numberwords/numberwords {:mvn/version "1.0.2"}
+```
+
+Usage example:
+
 ```
 (require '[numberwords.core :as nw])
 
@@ -90,6 +107,38 @@ Number Words exposes approximation functionality through `approximations` functi
                       :given-value 1/2,
                       :favorite-number #{"a half"}}}
 ```
+
+### Java
+
+Get a _jar_ by building it with 
+
+```
+clojure -A:uberjar
+```
+
+Or as a _Maven_ dependency
+
+```
+<repository>
+    <id>clojars.org</id>
+    <url>http://clojars.org/repo</url>
+</repository>
+<dependency>
+    <groupId>ai.tokenmill.numberwords</groupId>
+    <artifactId>numberwords</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+</dependency>
+```
+
+Usage example:
+
+```
+import ai.tokenmill.numberwords.NumberWords;
+
+NumberWords nw = new NumberWords();
+nw.approximations("en", 1.22, 0.1);
+```
+
 
 ## Configuration
 
