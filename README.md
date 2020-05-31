@@ -1,4 +1,4 @@
-[![Clojars Project](https://img.shields.io/clojars/v/numberwords.svg)](https://clojars.org/numberwords)
+[![Clojars Project](https://img.shields.io/clojars/v/ai.tokenmill.numberwords/numberwords.svg)](https://clojars.org/ai.tokenmill.numberwords/numberwords)
 
 # Number Words
 
@@ -128,6 +128,15 @@ Or as a _Maven_ dependency
     <artifactId>numberwords</artifactId>
     <version>1.0.2-SNAPSHOT</version>
 </dependency>
+```
+
+Usage example:
+
+```
+import ai.tokenmill.numberwords.NumberWords;
+
+NumberWords nw = new NumberWords();
+nw.approximations("en", 1.22, 0.1);
 ```
 
 
