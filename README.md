@@ -37,8 +37,8 @@ Number Words uses the following abstractions:
 The result of *actual value* approximation to a given scale provides:
 * *Given Value* a discrete value along the scaled number range to which *actual value* is the closest.
 * *Hedge* a common use word describing the relation between *actual* and *given* values. 
-  *Actual Value* of `9.5` is **below** *given value* of `10`.
-  *Actual Value* of `101` is **over** *given value* of `100`.
+  *Actual Value* of `9.5` is **below** the *given value* of `10`.
+  *Actual Value* of `101` is **over** the *given value* of `100`.
 * *Text* a textual spell out of the *given value*. A `2666` is `Two thousand six hundred sixty six`.
 * *Favorite Number* expresses some common language names for certain numbers. A `0.25` is a favorite number in that that it has the name - `a quarter`.
 
