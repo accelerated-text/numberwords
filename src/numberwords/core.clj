@@ -5,7 +5,6 @@
             [numberwords.config :as cfg]
             [numberwords.text :as text]))
 
-
 ;;the value for which numeric expression is to be calculated
 (s/def :numwords/actual-value (s/and number? no/nat-num? no/not-inf?))
 
@@ -30,10 +29,10 @@
 ;;             larger than actual value
 ;; :unequal main case when we will have all three numeric expressions generated
 (s/def :numwords/numeric-expressions
-  (s/or :equal   (s/map-of #{:numwords/equal} :numwords/num-approximation)
+  (s/or :equal      (s/map-of #{:numwords/equal} :numwords/num-approximation)
         :unreliable (s/map-of #{:numwords/around} :numwords/num-approximation)
-        :unequal (s/map-of #{:numwords/around :numwords/more-than :numwords/less-than}
-                           :numwords/num-approximation :min-count 3)))
+        :unequal    (s/map-of #{:numwords/around :numwords/more-than :numwords/less-than}
+                              :numwords/num-approximation :min-count 3)))
 
 ;;rounding (snapping) scale to use when calculating values which will be
 ;;provided as numeric expressions
@@ -53,8 +52,8 @@
 (defn build-expr
   "Build resulting spec conformant numeric expression description"
   [hedges fav-numbers text given-value]
-  (cond-> {:numwords/hedges hedges
-           :numwords/text text
+  (cond-> {:numwords/hedges      hedges
+           :numwords/text        text
            :numwords/given-value given-value}
     fav-numbers (assoc :numwords/favorite-number fav-numbers)))
 
@@ -106,16 +105,16 @@
           {:numwords/around around}
           {:numwords/around    around
            :numwords/more-than (build-expr (hedges :more)
-                                             (favorite-numbers num>)
-                                             (text num>)
-                                             num>)
+                                           (favorite-numbers num>)
+                                           (text num>)
+                                           num>)
            :numwords/less-than (build-expr (hedges :less)
-                                             (favorite-numbers num<)
-                                             (text num<)
-                                             num<)})))))
+                                           (favorite-numbers num<)
+                                           (text num<)
+                                           num<)})))))
 
 (s/fdef approximations
-  :args (s/cat :language :numwords/language
+  :args (s/cat :language     :numwords/language
                :actual-value :numwords/actual-value
-               :scale :numwords/scale)
+               :scale        :numwords/scale)
   :ret :numwords/numeric-expressions)

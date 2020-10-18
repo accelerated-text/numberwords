@@ -6,9 +6,9 @@
 (defn numwords-for [language]
   (with-open [r (io/reader (io/resource "numwords.edn"))]
     (let [config (get (edn/read (PushbackReader. r)) language)]
-      {:hedges             (fn [relation] (get-in config [:hedges relation]))
-       :favorite-numbers  (fn [given-value]
-                            (get-in config [:favorite-numbers given-value]))})))
+      {:hedges           (fn [relation] (get-in config [:hedges relation]))
+       :favorite-numbers (fn [given-value]
+                           (get-in config [:favorite-numbers given-value]))})))
 
 (defn supported-langauges []
   (with-open [r (io/reader (io/resource "numwords.edn"))]
