@@ -34,6 +34,10 @@
         :unequal    (s/map-of #{:numwords/around :numwords/more-than :numwords/less-than}
                               :numwords/num-approximation :min-count 3)))
 
+(s/def :numwords/relation #{:numwords/around :numwords/more-than :numwords/lest-than :equal})
+
+(s/def :numwords/approximations (s/keys :req [:numwords/given-value :numwords/relation]))
+
 ;;rounding (snapping) scale to use when calculating values which will be
 ;;provided as numeric expressions
 (s/def :numwords/scale (s/or :fraction    (s/and ratio? #(and (> % 0)
@@ -112,6 +116,33 @@
                                            (favorite-numbers num<)
                                            (text num<)
                                            num<)})))))
+
+(defn approximations2 [actual-value scale]
+  (let [value-range                   (no/bounding-box actual-value scale)
+        [[num> delta>] [num< delta<]] (distances-from-edges actual-value value-range)
+        closest-num                   (min num> num<)
+        equal-to                      (cond (= delta> 0.0) num>
+                                            (= delta< 0.0) num<
+                                            :else          nil)]
+    (cond
+      equal-to
+      [{:numwords/given-value equal-to :numwords/relation :numwords/equal}]
+
+      (unreliable? actual-value scale)
+      [{:numwords/relation :numwords/around :numwords/given-value closest-num}]
+
+      :else
+      [{:numwords/relation :numwords/around    :numwords/given-value closest-num}
+       {:numwords/relation :numwords/more-than :numwords/given-value num>}
+       {:numwords/relation :numwords/less-than :numwords/given-value num<}])))
+
+(defn number->text [language number] (text/number->text language number))
+
+(def config (cfg/numwords-config))
+
+(defn hedges [language relation] (-> config language :hedges relation))
+
+(defn favorite-number [language value] (-> config language :favorite-numbers (get value)))
 
 (s/fdef approximations
   :args (s/cat :language     :numwords/language
