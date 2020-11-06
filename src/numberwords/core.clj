@@ -31,10 +31,10 @@
 (s/def :numwords/numeric-expressions
   (s/or :equal      (s/map-of #{:numwords/equal} :numwords/num-approximation)
         :unreliable (s/map-of #{:numwords/around} :numwords/num-approximation)
-        :unequal    (s/map-of #{:numwords/around :numwords/more-than :numwords/less-than}
+        :unequal    (s/map-of #{:numwords/around :numwords/more :numwords/less}
                               :numwords/num-approximation :min-count 3)))
 
-(s/def :numwords/relation #{:numwords/around :numwords/more-than :numwords/lest-than :equal})
+(s/def :numwords/relation #{:numwords/around :numwords/more :numwords/lest :equal})
 
 (s/def :numwords/approximations (s/keys :req [:numwords/given-value :numwords/relation]))
 
@@ -62,12 +62,11 @@
     fav-numbers (assoc :numwords/favorite-number fav-numbers)))
 
 (defn unreliable?
-  "Actual value and scale values which will generate results which are unreliable:
+  "Actual value and scale values which will generate unreliable results:
   - actual-value much bigger that the scale
   - scale is bigger than the actual value"
   [actual-value scale]
-  ;; 1000x difference between the scale and value
-  ;; is chosen completely randomly
+  ;; 1000x difference between the scale and value is a random choice
   (or (< 1000 (/ actual-value scale))
       (and (< 1 scale) (< actual-value scale))))
 
@@ -108,11 +107,11 @@
         (if (unreliable? actual-value scale)
           {:numwords/around around}
           {:numwords/around    around
-           :numwords/more-than (build-expr (hedges :more)
+           :numwords/more (build-expr (hedges :more)
                                            (favorite-numbers num>)
                                            (text num>)
                                            num>)
-           :numwords/less-than (build-expr (hedges :less)
+           :numwords/less (build-expr (hedges :less)
                                            (favorite-numbers num<)
                                            (text num<)
                                            num<)})))))
@@ -125,24 +124,29 @@
                                             (= delta< 0.0) num<
                                             :else          nil)]
     (cond
-      equal-to
-      [{:numwords/given-value equal-to :numwords/relation :numwords/equal}]
-
-      (unreliable? actual-value scale)
-      [{:numwords/relation :numwords/around :numwords/given-value closest-num}]
-
-      :else
-      [{:numwords/relation :numwords/around    :numwords/given-value closest-num}
-       {:numwords/relation :numwords/more-than :numwords/given-value num>}
-       {:numwords/relation :numwords/less-than :numwords/given-value num<}])))
+      equal-to                         {:numwords/equal equal-to}
+      (unreliable? actual-value scale) {:numwords/around closest-num}
+      :else                            {:numwords/around closest-num
+                                        :numwords/more   num>
+                                        :numwords/less   num<})))
 
 (defn number->text [language number] (text/number->text language number))
 
 (def config (cfg/numwords-config))
 
-(defn hedges [language relation] (-> config language :hedges relation))
+(defn hedge [language relation]
+  (let [relation-kw (keyword (name relation))] ;FIXME how to do simple keyword given namespaced one?
+    (-> config language :hedges relation-kw)))
 
 (defn favorite-number [language value] (-> config language :favorite-numbers (get value)))
+
+(defn number-expression [language actual-value scale formatting relation]
+  (let [numexp-variants (approximations2 actual-value scale)]
+    (cond
+      (= '(:numwords/equal) (keys numexp-variants))  "exact"
+      (= '(:numwords/around) (keys numexp-variants)) "aprox"
+      :else                                          "full"
+      )))
 
 (s/fdef approximations
   :args (s/cat :language     :numwords/language
