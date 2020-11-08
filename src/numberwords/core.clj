@@ -18,25 +18,18 @@
 ;;in case there are favorite expressions for a given number, spell it out
 (s/def :numwords/favorite-number (s/coll-of string? :kind set?))
 
-;;numeric approximation provides all the info describing how an actual
-;;value can be described in an approximate manner
-(s/def :numwords/num-approximation (s/keys :req [:numwords/text :numwords/hedges :numwords/given-value]
-                                           :upt [:numwords/favorite-number]))
+(s/def :numwords/relation #{:numwords/around :numwords/more :numwords/lest :equal})
 
-;;main resulting data structure with three branches
+;;Given value relation to the actual value - a number on a scale grid
 ;; :equal in case actual value is equal to given value
 ;; :unreliable will be provided when working with huge numbers and where scale is
 ;;             larger than actual value
 ;; :unequal main case when we will have all three numeric expressions generated
-(s/def :numwords/numeric-expressions
-  (s/or :equal      (s/map-of #{:numwords/equal} :numwords/num-approximation)
-        :unreliable (s/map-of #{:numwords/around} :numwords/num-approximation)
+(s/def :numwords/given-value-relations
+  (s/or :equal      (s/map-of #{:numwords/equal} :numwords/given-value)
+        :unreliable (s/map-of #{:numwords/around} :numwords/given-value)
         :unequal    (s/map-of #{:numwords/around :numwords/more :numwords/less}
-                              :numwords/num-approximation :min-count 3)))
-
-(s/def :numwords/relation #{:numwords/around :numwords/more :numwords/lest :equal})
-
-(s/def :numwords/approximations (s/keys :req [:numwords/given-value :numwords/relation]))
+                              :numwords/given-value :min-count 3)))
 
 ;;rounding (snapping) scale to use when calculating values which will be
 ;;provided as numeric expressions
@@ -53,14 +46,6 @@
   [[start (no/delta start actual-value)]
    [end (no/delta end actual-value)]])
 
-(defn build-expr
-  "Build resulting spec conformant numeric expression description"
-  [hedges fav-numbers text given-value]
-  (cond-> {:numwords/hedges      hedges
-           :numwords/text        text
-           :numwords/given-value given-value}
-    fav-numbers (assoc :numwords/favorite-number fav-numbers)))
-
 (defn unreliable?
   "Actual value and scale values which will generate unreliable results:
   - actual-value much bigger that the scale
@@ -70,53 +55,12 @@
   (or (< 1000 (/ actual-value scale))
       (and (< 1 scale) (< actual-value scale))))
 
-(defn approximations
-  "Numeric approximations translate given numeric value to a set of simplified
-  approximations of that number. Function parameters:
-
+(defn numeric-relations
+  "Construct numeric relations for the actual value to the numbers on a scale
     * actual-value - a number which has to be expressed
-    * language - to be used for text generation
     * scale - specifies the granularity of the rounding:
-              1/10 for one decimal point, 10 for rounding to tenths, and so on.
-
-  Resulting approximation provides:
-
-    * given-value - a number which is a closest approximation of the actual value
-    * relation - how given-value relates to actual value: equal, more, less, or around
-    * hedges - a list of words describing the relation
-    * text - given-number translated to text"
-  [language actual-value scale]
-  (let [{:keys [hedges favorite-numbers]}
-        (cfg/numwords-for language)
-        text                          (partial text/number->text language)
-        value-range                   (no/bounding-box actual-value scale)
-        [[num> delta>] [num< delta<]] (distances-from-edges actual-value value-range)
-        closest-num                   (min num> num<)
-        equal-to                      (cond (= delta> 0.0) num>
-                                            (= delta< 0.0) num<
-                                            :else          nil)]
-    (if equal-to
-      {:numwords/equal (build-expr (hedges :equal)
-                                   (favorite-numbers equal-to)
-                                   (text equal-to)
-                                   equal-to)}
-      (let [around (build-expr (hedges :around)
-                               (favorite-numbers closest-num)
-                               (text closest-num)
-                               closest-num)]
-        (if (unreliable? actual-value scale)
-          {:numwords/around around}
-          {:numwords/around    around
-           :numwords/more (build-expr (hedges :more)
-                                           (favorite-numbers num>)
-                                           (text num>)
-                                           num>)
-           :numwords/less (build-expr (hedges :less)
-                                           (favorite-numbers num<)
-                                           (text num<)
-                                           num<)})))))
-
-(defn approximations2 [actual-value scale]
+              1/10 for one decimal point, 10 for rounding to tenths, and so on."
+  [actual-value scale]
   (let [value-range                   (no/bounding-box actual-value scale)
         [[num> delta>] [num< delta<]] (distances-from-edges actual-value value-range)
         closest-num                   (min num> num<)
@@ -130,26 +74,36 @@
                                         :numwords/more   num>
                                         :numwords/less   num<})))
 
-(defn number->text [language number] (text/number->text language number))
+(s/fdef numeric-relations
+  :args (s/cat :actual-value :numwords/actual-value
+               :scale        :numwords/scale)
+  :ret :numwords/given-value-relations)
+
+(defn number->text
+  "Translate number to text in a given language"
+  [language number] (text/number->text language number))
 
 (def config (cfg/numwords-config))
 
-(defn hedge [language relation]
+(defn hedge
+  "List of words describing the relation between given and actual value"
+  [language relation]
   (let [relation-kw (keyword (name relation))] ;FIXME how to do simple keyword given namespaced one?
     (-> config language :hedges relation-kw)))
 
-(defn favorite-number [language value] (-> config language :favorite-numbers (get value)))
+(defn favorite-number
+  "List of phrases which can be used instead of the number. Like `a half`"
+  [language value] (-> config language :favorite-numbers (get value)))
+
+(defn exact? [relations] (= '(:numwords/equal) (keys relations)))
+
+(defn approximate? [relations] (= '(:numwords/around) (keys relations)))
 
 (defn number-expression [language actual-value scale formatting relation]
-  (let [numexp-variants (approximations2 actual-value scale)]
+  (let [relations (numeric-relations actual-value scale)]
     (cond
-      (= '(:numwords/equal) (keys numexp-variants))  "exact"
-      (= '(:numwords/around) (keys numexp-variants)) "aprox"
+      (exact? relations)  "exact"
+      (approximate? relations) "aprox"
       :else                                          "full"
       )))
 
-(s/fdef approximations
-  :args (s/cat :language     :numwords/language
-               :actual-value :numwords/actual-value
-               :scale        :numwords/scale)
-  :ret :numwords/numeric-expressions)
