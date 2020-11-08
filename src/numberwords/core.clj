@@ -41,38 +41,23 @@
 ;;supported languages
 (s/def :numwords/language (cfg/supported-langauges))
 
-(defn distances-from-edges
-  [actual-value [start end]]
-  [[start (no/delta start actual-value)]
-   [end (no/delta end actual-value)]])
-
-(defn unreliable?
-  "Actual value and scale values which will generate unreliable results:
-  - actual-value much bigger that the scale
-  - scale is bigger than the actual value"
-  [actual-value scale]
-  ;; 1000x difference between the scale and value is a random choice
-  (or (< 1000 (/ actual-value scale))
-      (and (< 1 scale) (< actual-value scale))))
-
 (defn numeric-relations
   "Construct numeric relations for the actual value to the numbers on a scale
     * actual-value - a number which has to be expressed
     * scale - specifies the granularity of the rounding:
               1/10 for one decimal point, 10 for rounding to tenths, and so on."
   [actual-value scale]
-  (let [value-range                   (no/bounding-box actual-value scale)
-        [[num> delta>] [num< delta<]] (distances-from-edges actual-value value-range)
+  (let [[[num> delta>] [num< delta<]] (no/distances-from-edges actual-value scale)
         closest-num                   (min num> num<)
         equal-to                      (cond (= delta> 0.0) num>
                                             (= delta< 0.0) num<
                                             :else          nil)]
     (cond
-      equal-to                         {:numwords/equal equal-to}
-      (unreliable? actual-value scale) {:numwords/around closest-num}
-      :else                            {:numwords/around closest-num
-                                        :numwords/more   num>
-                                        :numwords/less   num<})))
+      equal-to                            {:numwords/equal equal-to}
+      (no/unreliable? actual-value scale) {:numwords/around closest-num}
+      :else                               {:numwords/around closest-num
+                                           :numwords/more   num>
+                                           :numwords/less   num<})))
 
 (s/fdef numeric-relations
   :args (s/cat :actual-value :numwords/actual-value

@@ -25,3 +25,17 @@
     [(rationalize (- rational-av m))
      (rationalize (- (+ rational-av scale) m))]))
 
+(defn distances-from-edges
+  [actual-value scale]
+  (let [[start end] (bounding-box actual-value scale)]
+    [[start (delta start actual-value)]
+     [end (delta end actual-value)]]))
+
+(defn unreliable?
+  "Actual value and scale values which will generate unreliable results:
+  - actual-value much bigger that the scale
+  - scale is bigger than the actual value"
+  [actual-value scale]
+  ;; 1000x difference between the scale and value is a random choice
+  (or (< 1000 (/ actual-value scale))
+      (and (< 1 scale) (< actual-value scale))))
