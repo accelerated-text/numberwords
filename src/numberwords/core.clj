@@ -5,6 +5,8 @@
             [numberwords.config :as cfg]
             [numberwords.text :as text]))
 
+(def config (cfg/numwords-config))
+
 ;;the value for which numeric expression is to be calculated
 (s/def :numwords/actual-value (s/and number? no/nat-num? no/not-inf?))
 
@@ -18,7 +20,7 @@
 ;;in case there are favorite expressions for a given number, spell it out
 (s/def :numwords/favorite-number (s/coll-of string? :kind set?))
 
-(s/def :numwords/relation #{:numwords/around :numwords/more :numwords/lest :equal})
+(s/def :numwords/relation #{:numwords/around :numwords/more :numwords/less :equal})
 
 ;;Given value relation to the actual value - a number on a scale grid
 ;; :equal in case actual value is equal to given value
@@ -68,17 +70,29 @@
   "Translate number to text in a given language"
   [language number] (text/number->text language number))
 
-(def config (cfg/numwords-config))
+(s/fdef number->text
+  :args (s/cat :lang :numwords/language :num :numwords/actual-value)
+  :ret string?)
 
 (defn hedge
   "List of words describing the relation between given and actual value"
   [language relation]
-  (let [relation-kw (keyword (name relation))] ;FIXME how to do simple keyword given namespaced one?
+  ;;FIXME how to do simple keyword given namespaced one?
+  (let [relation-kw (keyword (name relation))]
     (-> config language :hedges relation-kw)))
+
+(s/fdef hedge
+  :args (s/cat :lang :numwords/language :relation :numwords/relation)
+  :ret (s/coll-of string? :kind set?))
 
 (defn favorite-number
   "List of phrases which can be used instead of the number. Like `a half`"
   [language value] (-> config language :favorite-numbers (get value)))
+
+(s/fdef favorite-number
+  :args (s/cat :lang :numwords/language :relation :numwords/given-value)
+  :ret (s/or :has-fav-nums (s/coll-of string? :kind set?)
+             :no-fav-nums nil?))
 
 (defn exact? [relations] (= '(:numwords/equal) (keys relations)))
 
@@ -87,8 +101,6 @@
 (defn number-expression [language actual-value scale formatting relation]
   (let [relations (numeric-relations actual-value scale)]
     (cond
-      (exact? relations)  "exact"
+      (exact? relations)       "exact"
       (approximate? relations) "aprox"
-      :else                                          "full"
-      )))
-
+      :else                    "full")))
