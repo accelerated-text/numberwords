@@ -1,4 +1,4 @@
-(ns numberwords.number-ops)
+(ns numberwords.approx-math)
 
 (defn nat-num? [x] (not (neg? x)))
 

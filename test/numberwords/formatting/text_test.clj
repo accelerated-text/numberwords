@@ -1,5 +1,5 @@
-(ns numberwords.text-test
-  (:require [numberwords.text :refer [number->text]]
+(ns numberwords.formatting.text-test
+  (:require [numberwords.formatting.text :refer [number->text]]
             [clojure.test :refer [deftest is]]))
 
 (deftest number-conversion

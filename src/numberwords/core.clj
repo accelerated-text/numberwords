@@ -1,14 +1,14 @@
 (ns numberwords.core
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
-            [numberwords.number-ops :as no]
+            [numberwords.approx-math :as math]
             [numberwords.config :as cfg]
-            [numberwords.text :as text]))
+            [numberwords.formatting.text :as text]))
 
 (def config (cfg/numwords-config))
 
 ;;the value for which numeric expression is to be calculated
-(s/def :numwords/actual-value (s/and number? no/nat-num? no/not-inf?))
+(s/def :numwords/actual-value (s/and number? math/nat-num? math/not-inf?))
 
 ;;textual expression of the number
 (s/def :numwords/text (s/and string? #(not (string/blank? %))))
@@ -16,7 +16,7 @@
 (s/def :numwords/hedges (s/coll-of string? :kind set?))
 ;;given value - the value given by the numeric expression calculation as the one
 ;;rounding the actual value
-(s/def :numwords/given-value (s/and number? no/nat-num?))
+(s/def :numwords/given-value (s/and number? math/nat-num?))
 ;;in case there are favorite expressions for a given number, spell it out
 (s/def :numwords/favorite-number (s/coll-of string? :kind set?))
 
@@ -49,14 +49,14 @@
     * scale - specifies the granularity of the rounding:
               1/10 for one decimal point, 10 for rounding to tenths, and so on."
   [actual-value scale]
-  (let [[[num> delta>] [num< delta<]] (no/distances-from-edges actual-value scale)
+  (let [[[num> delta>] [num< delta<]] (math/distances-from-edges actual-value scale)
         closest-num                   (min num> num<)
         equal-to                      (cond (= delta> 0.0) num>
                                             (= delta< 0.0) num<
                                             :else          nil)]
     (cond
       equal-to                            {:numwords/equal equal-to}
-      (no/unreliable? actual-value scale) {:numwords/around closest-num}
+      (math/unreliable? actual-value scale) {:numwords/around closest-num}
       :else                               {:numwords/around closest-num
                                            :numwords/more   num>
                                            :numwords/less   num<})))
