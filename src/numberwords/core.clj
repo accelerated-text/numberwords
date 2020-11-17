@@ -3,6 +3,7 @@
             [clojure.string :as string]
             [numberwords.approx-math :as math]
             [numberwords.config :as cfg]
+            [numberwords.formatting.bitesize :as bitesize]
             [numberwords.formatting.text :as text]))
 
 (def config (cfg/numwords-config))
@@ -74,6 +75,14 @@
   :args (s/cat :lang :numwords/language :num :numwords/actual-value)
   :ret string?)
 
+(defn number->bitesize
+  "Translate number to text in a given language"
+  [number] (bitesize/number->bitesize number))
+
+(s/fdef number->bitesize
+  :args (s/cat :num :numwords/actual-value)
+  :ret string?)
+
 (defn hedge
   "List of words describing the relation between given and actual value"
   [language relation]
@@ -94,13 +103,20 @@
   :ret (s/or :has-fav-nums (s/coll-of string? :kind set?)
              :no-fav-nums nil?))
 
-(defn exact? [relations] (= '(:numwords/equal) (keys relations)))
+(s/def :numwords/formatting #{:numwords/words :numwords/bites :numwords/numbers})
 
-(defn approximate? [relations] (= '(:numwords/around) (keys relations)))
+(defn rand-term [coll] (when (coll? coll) (-> coll shuffle first)))
 
-(defn number-expression [language actual-value scale formatting relation]
-  (let [relations (numeric-relations actual-value scale)]
-    (cond
-      (exact? relations)       "exact"
-      (approximate? relations) "aprox"
-      :else                    "full")))
+(defn number-expression [language actual-value scale relation formatting]
+  (let [relations   (numeric-relations actual-value scale)
+        given-value (get relations relation
+                         (get relations :numwords/equal
+                              (get relations :numwords/around)))
+        fav-num     (rand-term (favorite-number language given-value))]
+    (format "%s %s"
+            (rand-term (hedge language relation))
+            (condp = formatting
+              :numwords/numbers given-value
+              :numwords/words   (or fav-num (number->text language given-value))
+              :numwords/bites   (number->bitesize given-value)
+              ))))

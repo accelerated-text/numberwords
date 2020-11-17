@@ -1,27 +1,26 @@
 (ns numberwords.formatting.bitesize
   (:require [clojure.spec.alpha :as s]))
 
-(s/def ::letter #{"" "k" "M" "B" "T"})
+(def sizes '("" "k" "M" "B" "T"))
+
+(s/def ::letter (set sizes))
 (s/def ::number number?)
-(s/def ::bite-expression (s/keys :req [::letter ::number]))
 
 (defn invalid? [n] (or (Double/isNaN n) (Double/isInfinite n)))
 
-(defn bite-count-formatting
+(defn number->bitesize
   "Algorithm taken from:
   https://programming.guide/java/formatting-byte-size-to-human-readable-format.html "
   [n]
   (if (invalid? n)
     {::number n}
     (loop [number         (Math/abs n)
-           number-letters '("" "k" "M" "B" "T")]
+           number-letters sizes]
       (cond
-        (nil? (peek number-letters)) {::number n}
-        (= 0 (quot number 1000))     {::letter (peek number-letters)
-                                      ::number number}
+        (nil? (peek number-letters)) (str n)
+        (= 0 (quot number 1000))     (str number (peek number-letters))
         :else                        (recur (quot number 1000) (pop number-letters))))))
 
-(s/fdef bite-count-formatting
+(s/fdef number->bitesize
   :args (s/cat :number number?)
-  :ret  (s/or :sucess  ::bite-expression
-              :too-big (s/keys :req [::number])))
+  :ret  string?)
