@@ -1,48 +1,12 @@
 (ns numberwords.core
   (:require [clojure.spec.alpha :as s]
-            [clojure.string :as string]
             [numberwords.approx-math :as math]
             [numberwords.config :as cfg]
             [numberwords.formatting.bitesize :as bitesize]
-            [numberwords.formatting.text :as text]))
+            [numberwords.formatting.text :as text]
+            [numberwords.domain :as nd]))
 
 (def config (cfg/numwords-config))
-
-;;the value for which numeric expression is to be calculated
-(s/def :numwords/actual-value (s/and number? math/nat-num? math/not-inf?))
-
-;;textual expression of the number
-(s/def :numwords/text (s/and string? #(not (string/blank? %))))
-;;textual hedge describing the relation between given and actual value
-(s/def :numwords/hedges (s/coll-of string? :kind set?))
-;;given value - the value given by the numeric expression calculation as the one
-;;rounding the actual value
-(s/def :numwords/given-value (s/and number? math/nat-num?))
-;;in case there are favorite expressions for a given number, spell it out
-(s/def :numwords/favorite-number (s/coll-of string? :kind set?))
-
-(s/def :numwords/relation #{:numwords/around :numwords/more :numwords/less :equal})
-
-;;Given value relation to the actual value - a number on a scale grid
-;; :equal in case actual value is equal to given value
-;; :unreliable will be provided when working with huge numbers and where scale is
-;;             larger than actual value
-;; :unequal main case when we will have all three numeric expressions generated
-(s/def :numwords/given-value-relations
-  (s/or :equal      (s/map-of #{:numwords/equal} :numwords/given-value)
-        :unreliable (s/map-of #{:numwords/around} :numwords/given-value)
-        :unequal    (s/map-of #{:numwords/around :numwords/more :numwords/less}
-                              :numwords/given-value :min-count 3)))
-
-;;rounding (snapping) scale to use when calculating values which will be
-;;provided as numeric expressions
-(s/def :numwords/scale (s/or :fraction    (s/and ratio? #(and (> % 0)
-                                                              (> (denominator %)
-                                                                 (numerator %))))
-                             :natural-num (s/and number? pos-int?)))
-
-;;supported languages
-(s/def :numwords/language (cfg/supported-langauges))
 
 (defn numeric-relations
   "Construct numeric relations for the actual value to the numbers on a scale
@@ -56,23 +20,23 @@
                                             (= delta< 0.0) num<
                                             :else          nil)]
     (cond
-      equal-to                            {:numwords/equal equal-to}
-      (math/unreliable? actual-value scale) {:numwords/around closest-num}
-      :else                               {:numwords/around closest-num
-                                           :numwords/more   num>
-                                           :numwords/less   num<})))
+      equal-to                              {::nd/equal equal-to}
+      (math/unreliable? actual-value scale) {::nd/around closest-num}
+      :else                                 {::nd/around closest-num
+                                             ::nd/more   num>
+                                             ::nd/less   num<})))
 
 (s/fdef numeric-relations
-  :args (s/cat :actual-value :numwords/actual-value
-               :scale        :numwords/scale)
-  :ret :numwords/given-value-relations)
+  :args (s/cat :actual-value ::nd/actual-value
+               :scale        ::nd/scale)
+  :ret ::nd/given-value-relations)
 
 (defn number->text
   "Translate number to text in a given language"
   [language number] (text/number->text language number))
 
 (s/fdef number->text
-  :args (s/cat :lang :numwords/language :num :numwords/actual-value)
+  :args (s/cat :lang ::nd/language :num ::nd/actual-value)
   :ret string?)
 
 (defn number->bitesize
@@ -80,7 +44,7 @@
   [number] (bitesize/number->bitesize number))
 
 (s/fdef number->bitesize
-  :args (s/cat :num :numwords/actual-value)
+  :args (s/cat :num ::nd/actual-value)
   :ret string?)
 
 (defn hedge
@@ -91,7 +55,7 @@
     (-> config language :hedges relation-kw)))
 
 (s/fdef hedge
-  :args (s/cat :lang :numwords/language :relation :numwords/relation)
+  :args (s/cat :lang ::nd/language :relation ::nd/relation)
   :ret (s/coll-of string? :kind set?))
 
 (defn favorite-number
@@ -99,24 +63,27 @@
   [language value] (-> config language :favorite-numbers (get value)))
 
 (s/fdef favorite-number
-  :args (s/cat :lang :numwords/language :relation :numwords/given-value)
+  :args (s/cat :lang ::nd/language :relation ::nd/given-value)
   :ret (s/or :has-fav-nums (s/coll-of string? :kind set?)
              :no-fav-nums nil?))
 
-(s/def :numwords/formatting #{:numwords/words :numwords/bites :numwords/numbers})
+(defn number-with-precision [num scale]
+  (if (ratio? num)
+    (double num)
+    num))
 
-(defn rand-term [coll] (when (coll? coll) (-> coll shuffle first)))
+(s/def ::nd/formatting #{::nd/words ::nd/bites ::nd/numbers})
 
-(defn number-expression [language actual-value scale relation formatting]
+(defn numeric-expression [language actual-value scale relation formatting]
   (let [relations   (numeric-relations actual-value scale)
         given-value (get relations relation
-                         (get relations :numwords/equal
-                              (get relations :numwords/around)))
-        fav-num     (rand-term (favorite-number language given-value))]
+                         (get relations ::nd/equal
+                              (get relations ::nd/around)))
+        fav-num     (first (favorite-number language given-value))]
     (format "%s %s"
-            (rand-term (hedge language relation))
+            (first (hedge language relation))
             (condp = formatting
-              :numwords/numbers given-value
-              :numwords/words   (or fav-num (number->text language given-value))
-              :numwords/bites   (number->bitesize given-value)
+              ::nd/numbers (number-with-precision given-value scale)
+              ::nd/words   (or fav-num (number->text language given-value))
+              ::nd/bites   (number->bitesize given-value)
               ))))
