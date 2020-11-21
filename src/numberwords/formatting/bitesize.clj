@@ -3,9 +3,6 @@
 
 (def sizes '("" "k" "M" "B" "T"))
 
-(s/def ::letter (set sizes))
-(s/def ::number number?)
-
 (defn invalid? [n] (or (Double/isNaN n) (Double/isInfinite n)))
 
 (defn number->bitesize
