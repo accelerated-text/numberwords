@@ -1,9 +1,9 @@
 (ns numberwords.formatting.bitesize-test
-  (:require [numberwords.formatting.bitesize :as bs]
-            [clojure.test :refer [deftest is]]))
+  (:require [numberwords.formatting.bitesize :refer [number->bitesize]]
+            [clojure.test :refer [deftest are]]))
 
 (deftest bitesize-formatting
-  (is (= {::bs/letter "" ::bs/number 1} (bs/bite-count-formatting 1)))
-  (is (= {::bs/letter "k" ::bs/number 1} (bs/bite-count-formatting 1999)))
-  (is (= {::bs/number 100000000000000000} (bs/bite-count-formatting 100000000000000000))))
-
+  (are [results value] (= results (number->bitesize value))
+    "1" 1
+    "1k" 1999
+    "100000000000000000" 100000000000000000))
