@@ -1,4 +1,4 @@
-(ns numberwords.text
+(ns numberwords.formatting.text
   (:import com.ibm.icu.text.RuleBasedNumberFormat
            java.util.Locale))
 

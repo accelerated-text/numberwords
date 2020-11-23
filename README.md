@@ -43,10 +43,15 @@ The result of *actual value* approximation to a given scale provides:
 * *Favorite Number* expresses some common language names for certain numbers. A `0.25` is a favorite number in that that it has the name - `a quarter`.
 
 A full approximation result returns three such approximation data structures for a *given value* which is:
-* **smaller** than the *actual value* on the scaled number range. 
-* **greater** than the *actual value* on the scaled number range. 
-* **around** the *actual value* on the scaled number range. For this a is chosen from the above two which is closer to the *actual value*.
-  
+* **less** than the *actual value* on the scaled number range. 
+* **more** than the *actual value* on the scaled number range. 
+* **around** the *actual value* on the scaled number range. For this 'less' or 'more' value closer to the *actual value* is chosen.
+
+Lastly the number formatting can be specified:
+* **words** - spell out the number in words (110 -> hundred and ten).
+* **bites** - spell out the number using bite size style shortening (1022 -> 1k).
+* **numbers** - report number as is.
+
 ## Languages
 
 Numeric approximation has two functionality points which are language dependent
@@ -63,10 +68,12 @@ Currently supported languages:
   
 ## Usage
 
-Number Words exposes approximation functionality through `approximations` function which takes on the following parameters:
-* `language` - `:de` or `:en`
+Number Words exposes approximation functionality through `numeric-expression` function which takes on the following parameters:
 * `actual-value` - the number to approximate
 * `scale` - at which the approximation is to be performed.
+* `language` - use two letter language code (like :pt), default is :en
+* `relation` - what kind of relation to between actual and given value to use (valid values specified in `:numberwords.domain/relation`)
+* `formatting` - which number formatting should be used (valid values specified in `:numberwords.domain/formatting`)
 
 ### Installation
 
@@ -76,12 +83,12 @@ Number Words exposes approximation functionality through `approximations` functi
 
 _Leiningen_
 ```
-[ai.tokenmill.numberwords/numberwords "1.0.2"]
+[ai.tokenmill.numberwords/numberwords "1.1.0"]
 ```
 
 _deps.edn_
 ```
-ai.tokenmill.numberwords/numberwords {:mvn/version "1.0.2"}
+ai.tokenmill.numberwords/numberwords {:mvn/version "1.1.0"}
 ```
 
 Usage example:
@@ -89,23 +96,19 @@ Usage example:
 ```
 (require '[numberwords.core :as nw])
 
-(nw/approximations :en 0.258 1/4)
+(numeric-expression 144 10 :en :numberwords.domain/around :numberwords.domain/words)
 =>
-#:numwords{:around
-           #:numwords{:hedges #{"approximately" "about" "around"},
-                      :text "zero point two five",
-                      :given-value 1/4,
-                      :favorite-number #{"a quarter"}},
-           :more-than
-           #:numwords{:hedges #{"over" "more than"},
-                      :text "zero point two five",
-                      :given-value 1/4,
-                      :favorite-number #{"a quarter"}},
-           :less-than
-           #:numwords{:hedges #{"nearly" "under" "less than"},
-                      :text "zero point five",
-                      :given-value 1/2,
-                      :favorite-number #{"a half"}}}
+"around one hundred forty"
+
+(numeric-expression 144 10 :de :numberwords.domain/less :numberwords.domain/numbers)
+=>
+"weniger als 150"
+
+;; with defaults
+(numeric-expression 144 10)
+=>
+"around 140"
+
 ```
 
 ### Java
@@ -126,7 +129,7 @@ Or as a _Maven_ dependency
 <dependency>
     <groupId>ai.tokenmill.numberwords</groupId>
     <artifactId>numberwords</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
@@ -136,9 +139,8 @@ Usage example:
 import ai.tokenmill.numberwords.NumberWords;
 
 NumberWords nw = new NumberWords();
-nw.approximations("en", 1.22, 0.1);
+nw.numericExpression(1.22, 0.1, "en", "more", "numbers");
 ```
-
 
 ## Configuration
 

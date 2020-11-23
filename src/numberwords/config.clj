@@ -10,6 +10,10 @@
        :favorite-numbers (fn [given-value]
                            (get-in config [:favorite-numbers given-value]))})))
 
+(defn numwords-config []
+  (with-open [r (io/reader (io/resource "numwords.edn"))]
+    (edn/read (PushbackReader. r))))
+
 (defn supported-langauges []
   (with-open [r (io/reader (io/resource "numwords.edn"))]
     (-> (PushbackReader. r)

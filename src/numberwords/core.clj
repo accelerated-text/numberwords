@@ -1,120 +1,113 @@
 (ns numberwords.core
   (:require [clojure.spec.alpha :as s]
-            [clojure.string :as string]
-            [numberwords.number-ops :as no]
+            [numberwords.approx-math :as math]
             [numberwords.config :as cfg]
-            [numberwords.text :as text]))
+            [numberwords.formatting.bitesize :as bitesize]
+            [numberwords.formatting.text :as text]
+            [numberwords.domain :as nd]))
 
-;;the value for which numeric expression is to be calculated
-(s/def :numwords/actual-value (s/and number? no/nat-num? no/not-inf?))
+(def config (cfg/numwords-config))
 
-;;textual expression of the number
-(s/def :numwords/text (s/and string? #(not (string/blank? %))))
-;;textual hedge describing the relation between given and actual value
-(s/def :numwords/hedges (s/coll-of string? :kind set?))
-;;given value - the value given by the numeric expression calculation as the one
-;;rounding the actual value
-(s/def :numwords/given-value (s/and number? no/nat-num?))
-;;in case there are favorite expressions for a given number, spell it out
-(s/def :numwords/favorite-number (s/coll-of string? :kind set?))
-
-;;numeric approximation provides all the info describing how an actual
-;;value can be described in an approximate manner
-(s/def :numwords/num-approximation (s/keys :req [:numwords/text :numwords/hedges :numwords/given-value]
-                                           :upt [:numwords/favorite-number]))
-
-;;main resulting data structure with three branches
-;; :equal in case actual value is equal to given value
-;; :unreliable will be provided when working with huge numbers and where scale is
-;;             larger than actual value
-;; :unequal main case when we will have all three numeric expressions generated
-(s/def :numwords/numeric-expressions
-  (s/or :equal      (s/map-of #{:numwords/equal} :numwords/num-approximation)
-        :unreliable (s/map-of #{:numwords/around} :numwords/num-approximation)
-        :unequal    (s/map-of #{:numwords/around :numwords/more-than :numwords/less-than}
-                              :numwords/num-approximation :min-count 3)))
-
-;;rounding (snapping) scale to use when calculating values which will be
-;;provided as numeric expressions
-(s/def :numwords/scale (s/or :fraction    (s/and ratio? #(and (> % 0)
-                                                              (> (denominator %)
-                                                                 (numerator %))))
-                             :natural-num (s/and number? pos-int?)))
-
-;;supported languages
-(s/def :numwords/language (cfg/supported-langauges))
-
-(defn distances-from-edges
-  [actual-value [start end]]
-  [[start (no/delta start actual-value)]
-   [end (no/delta end actual-value)]])
-
-(defn build-expr
-  "Build resulting spec conformant numeric expression description"
-  [hedges fav-numbers text given-value]
-  (cond-> {:numwords/hedges      hedges
-           :numwords/text        text
-           :numwords/given-value given-value}
-    fav-numbers (assoc :numwords/favorite-number fav-numbers)))
-
-(defn unreliable?
-  "Actual value and scale values which will generate results which are unreliable:
-  - actual-value much bigger that the scale
-  - scale is bigger than the actual value"
-  [actual-value scale]
-  ;; 1000x difference between the scale and value
-  ;; is chosen completely randomly
-  (or (< 1000 (/ actual-value scale))
-      (and (< 1 scale) (< actual-value scale))))
-
-(defn approximations
-  "Numeric approximations translate given numeric value to a set of simplified
-  approximations of that number. Function parameters:
-
+(defn numeric-relations
+  "Construct numeric relations for the actual value to the numbers on a scale
     * actual-value - a number which has to be expressed
-    * language - to be used for text generation
     * scale - specifies the granularity of the rounding:
-              1/10 for one decimal point, 10 for rounding to tenths, and so on.
-
-  Resulting approximation provides:
-
-    * given-value - a number which is a closest approximation of the actual value
-    * relation - how given-value relates to actual value: equal, more, less, or around
-    * hedges - a list of words describing the relation
-    * text - given-number translated to text"
-  [language actual-value scale]
-  (let [{:keys [hedges favorite-numbers]}
-        (cfg/numwords-for language)
-        text                          (partial text/number->text language)
-        value-range                   (no/bounding-box actual-value scale)
-        [[num> delta>] [num< delta<]] (distances-from-edges actual-value value-range)
+              1/10 for one decimal point, 10 for rounding to tenths, and so on."
+  [actual-value scale]
+  (let [[[num> delta>] [num< delta<]] (math/distances-from-edges actual-value scale)
         closest-num                   (min num> num<)
         equal-to                      (cond (= delta> 0.0) num>
                                             (= delta< 0.0) num<
                                             :else          nil)]
-    (if equal-to
-      {:numwords/equal (build-expr (hedges :equal)
-                                   (favorite-numbers equal-to)
-                                   (text equal-to)
-                                   equal-to)}
-      (let [around (build-expr (hedges :around)
-                               (favorite-numbers closest-num)
-                               (text closest-num)
-                               closest-num)]
-        (if (unreliable? actual-value scale)
-          {:numwords/around around}
-          {:numwords/around    around
-           :numwords/more-than (build-expr (hedges :more)
-                                           (favorite-numbers num>)
-                                           (text num>)
-                                           num>)
-           :numwords/less-than (build-expr (hedges :less)
-                                           (favorite-numbers num<)
-                                           (text num<)
-                                           num<)})))))
+    (cond
+      equal-to                              {::nd/equal equal-to}
+      (math/unreliable? actual-value scale) {::nd/around closest-num}
+      :else                                 {::nd/around closest-num
+                                             ::nd/more   num>
+                                             ::nd/less   num<})))
 
-(s/fdef approximations
-  :args (s/cat :language     :numwords/language
-               :actual-value :numwords/actual-value
-               :scale        :numwords/scale)
-  :ret :numwords/numeric-expressions)
+(s/fdef numeric-relations
+  :args (s/cat :actual-value ::nd/actual-value
+               :scale        ::nd/scale)
+  :ret ::nd/given-value-relations)
+
+(defn number->text
+  "Translate number to text in a given language"
+  [number language] (text/number->text language number))
+
+(s/fdef number->text
+  :args (s/cat :num ::nd/actual-value :lang ::nd/language)
+  :ret string?)
+
+(defn number->bitesize
+  "Translate number to bite style number formatting"
+  [number] (bitesize/number->bitesize number))
+
+(s/fdef number->bitesize
+  :args (s/cat :num ::nd/actual-value)
+  :ret string?)
+
+(defn hedge
+  "List of words describing the relation between given and actual value"
+  [relation language]
+  ;;FIXME how to do simple keyword given namespaced one?
+  (let [relation-kw (keyword (name relation))]
+    (-> config language :hedges relation-kw)))
+
+(s/fdef hedge
+  :args (s/cat :relation ::nd/relation :lang ::nd/language)
+  :ret (s/coll-of string? :kind set?))
+
+(defn favorite-number
+  "List of phrases which can be used instead of the number. Like `a half`"
+  [value language] (-> config language :favorite-numbers (get value)))
+
+(s/fdef favorite-number
+  :args (s/cat :relation ::nd/given-value :lang ::nd/language)
+  :ret (s/or :has-fav-nums (s/coll-of string? :kind set?)
+             :no-fav-nums nil?))
+
+(defn number-with-precision [num scale]
+  (if (ratio? num)
+    (double num)
+    num))
+
+(defn possible-relation
+  "Get the relation which is possible in the current given value approximations.
+  If we have regular case with all three (less,more,equal) detected then return it
+  else first check if we have 'equal' relation, if this is not present go for 'around'"
+  [given-val-relations requested-relation]
+  (let [relation-types (set (keys given-val-relations))]
+    (or
+     (get relation-types requested-relation)
+     (get relation-types ::nd/equal)
+     (get relation-types ::nd/about))))
+
+(defn numeric-expression
+  ([actual-value scale]
+   (numeric-expression actual-value scale :en ::nd/around ::nd/bites))
+  ([actual-value scale relation formatting]
+   (numeric-expression actual-value scale :en relation formatting))
+  ([actual-value scale language relation formatting]
+   (let [relations       (numeric-relations actual-value scale)
+         actual-relation (possible-relation relations relation)
+         given-value     (get relations actual-relation)
+         fav-num         (first (favorite-number given-value language))]
+     (format "%s %s"
+             (first (hedge actual-relation language))
+             (condp = formatting
+               ::nd/numbers (number-with-precision given-value scale)
+               ::nd/words   (or fav-num (number->text given-value language))
+               ::nd/bites
+               ;;FIXME this part is not good, plus revisit
+               ;; `number-with-precision` it has to work for `numbers`
+               (if (or (rational? given-value)
+                                    (ratio? given-value)
+                                    (< scale 1))
+                              (number-with-precision given-value scale)
+                              (number->bitesize given-value)))))))
+
+(s/fdef numeric-expression
+  :args (s/cat :num ::nd/actual-value :scale ::nd/scale :lang ::nd/language
+               :relation ::nd/relation :formatting ::nd/formatting)
+  :ret string?)
