@@ -2,6 +2,8 @@
 
 # Number Words
 
+![ZEN](docs/amanda-jones-Mk3rIB1JyTY-unsplash-cropped.png)
+
 Number Words will build numeric expressions for natural numbers, percentages and fractions. For example:
 
 * `0.231` will be converted to `less than a quarter`,
@@ -165,3 +167,6 @@ Hedges, favorite numbers can be modified and new languages added via changes to 
 Copyright &copy; 2020 [TokenMill UAB](http://www.tokenmill.ai).
 
 Distributed under the The Apache License, Version 2.0.
+
+----
+<span>Photo by <a href="https://unsplash.com/@amandagraphc?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Amanda Jones</a> on <a href="https://unsplash.com/?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
