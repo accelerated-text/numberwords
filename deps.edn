@@ -7,10 +7,10 @@
                                   "-m" "ai.tokenmill.numberwords.NumberWords"
                                   "--app-group-id" "ai.tokenmill.numberwords"
                                   "--app-artifact-id" "numberwords"
-                                  "--app-version" "1.0.2"]}
-           :deploy  {:extra-deps {deps-deploy {:mvn/version "RELEASE"}}
+                                  "--app-version" "1.1.0"]}
+           :deploy  {:extra-deps {deps-deploy/deps-deploy {:mvn/version "RELEASE"}}
                      :main-opts  ["-m" "deps-deploy.deps-deploy" "deploy"
-                                  "target/numberwords-1.0.2.jar"]}
+                                  "target/numberwords-1.1.0.jar"]}
            :test    {:extra-paths ["test"]
                      :extra-deps  {org.clojure/test.check {:mvn/version "RELEASE"}}}
            :runner  {:extra-deps {com.cognitect/test-runner
