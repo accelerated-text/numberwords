@@ -37,5 +37,5 @@
   (are [result actual-value language scale relation formatting]
       (= result
          (nw/numeric-expression actual-value language scale relation formatting))
-    "around zero point two" 0.23 :en 1/10 ::nd/around ::nd/words
-    "around 0.2"            0.23 :en 1/10 ::nd/around ::nd/numbers))
+    "around zero point two" 0.23 1/10 :en ::nd/around ::nd/words
+    "around 0.2"            0.23 1/10 :en ::nd/around ::nd/numbers))

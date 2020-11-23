@@ -83,12 +83,12 @@
      (get relation-types ::nd/equal)
      (get relation-types ::nd/about))))
 
-(s/def ::nd/formatting #{::nd/words ::nd/bites ::nd/numbers})
-
 (defn numeric-expression
+  ([actual-value scale]
+   (numeric-expression actual-value scale :en ::nd/around ::nd/bites))
   ([actual-value scale relation formatting]
-   (numeric-expression actual-value :en scale relation formatting))
-  ([actual-value language scale relation formatting]
+   (numeric-expression actual-value scale :en relation formatting))
+  ([actual-value scale language relation formatting]
    (let [relations       (numeric-relations actual-value scale)
          actual-relation (possible-relation relations relation)
          given-value     (get relations actual-relation)
@@ -98,4 +98,16 @@
              (condp = formatting
                ::nd/numbers (number-with-precision given-value scale)
                ::nd/words   (or fav-num (number->text given-value language))
-               ::nd/bites   (number->bitesize given-value))))))
+               ::nd/bites
+               ;;FIXME this part is not good, plus revisit
+               ;; `number-with-precision` it has to work for `numbers`
+               (if (or (rational? given-value)
+                                    (ratio? given-value)
+                                    (< scale 1))
+                              (number-with-precision given-value scale)
+                              (number->bitesize given-value)))))))
+
+(s/fdef numeric-expression
+  :args (s/cat :num ::nd/actual-value :scale ::nd/scale :lang ::nd/language
+               :relation ::nd/relation :formatting ::nd/formatting)
+  :ret string?)

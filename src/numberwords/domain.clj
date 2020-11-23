@@ -38,3 +38,5 @@
 
 ;;supported languages
 (s/def ::language (cfg/supported-langauges))
+
+(s/def ::formatting #{::words ::bites ::numbers})
