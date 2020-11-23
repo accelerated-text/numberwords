@@ -3,8 +3,9 @@ lint:
 
 .PHONY: test
 test:
-	clojure -A:test:runner
+	clojure -M:test:runner
 
+.PHONY: uberjar
 uberjar:
-	clj -A:uberjar
+	clj -M:uberjar
 
