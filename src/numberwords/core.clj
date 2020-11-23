@@ -33,14 +33,14 @@
 
 (defn number->text
   "Translate number to text in a given language"
-  [language number] (text/number->text language number))
+  [number language] (text/number->text language number))
 
 (s/fdef number->text
-  :args (s/cat :lang ::nd/language :num ::nd/actual-value)
+  :args (s/cat :num ::nd/actual-value :lang ::nd/language)
   :ret string?)
 
 (defn number->bitesize
-  "Translate number to text in a given language"
+  "Translate number to bite style number formatting"
   [number] (bitesize/number->bitesize number))
 
 (s/fdef number->bitesize
@@ -49,21 +49,21 @@
 
 (defn hedge
   "List of words describing the relation between given and actual value"
-  [language relation]
+  [relation language]
   ;;FIXME how to do simple keyword given namespaced one?
   (let [relation-kw (keyword (name relation))]
     (-> config language :hedges relation-kw)))
 
 (s/fdef hedge
-  :args (s/cat :lang ::nd/language :relation ::nd/relation)
+  :args (s/cat :relation ::nd/relation :lang ::nd/language)
   :ret (s/coll-of string? :kind set?))
 
 (defn favorite-number
   "List of phrases which can be used instead of the number. Like `a half`"
-  [language value] (-> config language :favorite-numbers (get value)))
+  [value language] (-> config language :favorite-numbers (get value)))
 
 (s/fdef favorite-number
-  :args (s/cat :lang ::nd/language :relation ::nd/given-value)
+  :args (s/cat :relation ::nd/given-value :lang ::nd/language)
   :ret (s/or :has-fav-nums (s/coll-of string? :kind set?)
              :no-fav-nums nil?))
 
@@ -72,18 +72,30 @@
     (double num)
     num))
 
+(defn possible-relation
+  "Get the relation which is possible in the current given value approximations.
+  If we have regular case with all three (less,more,equal) detected then return it
+  else first check if we have 'equal' relation, if this is not present go for 'around'"
+  [given-val-relations requested-relation]
+  (let [relation-types (set (keys given-val-relations))]
+    (or
+     (get relation-types requested-relation)
+     (get relation-types ::nd/equal)
+     (get relation-types ::nd/about))))
+
 (s/def ::nd/formatting #{::nd/words ::nd/bites ::nd/numbers})
 
-(defn numeric-expression [language actual-value scale relation formatting]
-  (let [relations   (numeric-relations actual-value scale)
-        given-value (get relations relation
-                         (get relations ::nd/equal
-                              (get relations ::nd/around)))
-        fav-num     (first (favorite-number language given-value))]
-    (format "%s %s"
-            (first (hedge language relation))
-            (condp = formatting
-              ::nd/numbers (number-with-precision given-value scale)
-              ::nd/words   (or fav-num (number->text language given-value))
-              ::nd/bites   (number->bitesize given-value)
-              ))))
+(defn numeric-expression
+  ([actual-value scale relation formatting]
+   (numeric-expression actual-value :en scale relation formatting))
+  ([actual-value language scale relation formatting]
+   (let [relations       (numeric-relations actual-value scale)
+         actual-relation (possible-relation relations relation)
+         given-value     (get relations actual-relation)
+         fav-num         (first (favorite-number given-value language))]
+     (format "%s %s"
+             (first (hedge actual-relation language))
+             (condp = formatting
+               ::nd/numbers (number-with-precision given-value scale)
+               ::nd/words   (or fav-num (number->text given-value language))
+               ::nd/bites   (number->bitesize given-value))))))
