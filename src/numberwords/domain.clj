@@ -1,6 +1,5 @@
 (ns numberwords.domain
   (:require [clojure.spec.alpha :as s]
-            [clojure.string :as string]
             [numberwords.config :as cfg]
             [numberwords.approx-math :as math]))
 
@@ -33,9 +32,9 @@
 ;;rounding (snapping) scale to use when calculating values which will be
 ;;provided as numeric expressions
 (s/def ::scale (s/or :fraction    (s/and ratio? #(and (> % 0)
-                                                              (> (denominator %)
-                                                                 (numerator %))))
-                             :natural-num (s/and number? pos-int?)))
+                                                      (> (denominator %)
+                                                         (numerator %))))
+                     :natural-num (s/and number? pos-int?)))
 
 ;;supported languages
 (s/def ::language (cfg/supported-langauges))
