@@ -9,3 +9,6 @@ test:
 uberjar:
 	clj -M:uberjar
 
+.PHONY: deploy
+deploy:
+	clj -M:deploy
