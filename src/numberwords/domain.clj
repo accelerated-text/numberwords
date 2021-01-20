@@ -16,7 +16,7 @@
 ;;in case there are favorite expressions for a given number, spell it out
 (s/def ::favorite-number (s/coll-of string? :kind set?))
 
-(s/def ::relation #{::around ::more ::less :equal})
+(s/def ::relation #{::around ::more ::less ::equal})
 
 ;;Given value relation to the actual value - a number on a scale grid
 ;; :equal in case actual value is equal to given value

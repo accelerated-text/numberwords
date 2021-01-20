@@ -1,6 +1,6 @@
 (ns numberwords.core-test
   (:require [clojure.spec.test.alpha :as st]
-            [clojure.test :refer [deftest are]]
+            [clojure.test :refer [deftest are is]]
             [numberwords.domain :as nd]
             [numberwords.core :as nw]))
 
@@ -19,6 +19,11 @@
     {::nd/equal 0}   0   1/4
     {::nd/equal 1}   1   1/100
     {::nd/equal 110} 110 10))
+
+(deftest num-relations-for-natural-nums
+  (is (= #::nd{:around 10 :more 0 :less 10} (nw/numeric-relations 7 10)))
+  (is (= #::nd{:around 0 :more 0 :less 10} (nw/numeric-relations 1 10)))
+  (is (= #::nd{:around 10 :more 10 :less 20} (nw/numeric-relations 12 10))))
 
 (deftest given-values-at-favorite-numbers
   (are [result value language] (= result (nw/favorite-number value language))

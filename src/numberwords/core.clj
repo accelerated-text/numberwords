@@ -2,9 +2,9 @@
   (:require [clojure.spec.alpha :as s]
             [numberwords.approx-math :as math]
             [numberwords.config :as cfg]
+            [numberwords.domain :as nd]
             [numberwords.formatting.bitesize :as bitesize]
-            [numberwords.formatting.text :as text]
-            [numberwords.domain :as nd]))
+            [numberwords.formatting.text :as text]))
 
 (def config (cfg/numwords-config))
 
@@ -15,7 +15,7 @@
               1/10 for one decimal point, 10 for rounding to tenths, and so on."
   [actual-value scale]
   (let [[[num> delta>] [num< delta<]] (math/distances-from-edges actual-value scale)
-        closest-num                   (min num> num<)
+        closest-num                   (if (> delta> delta<) num< num>)
         equal-to                      (cond (= delta> 0.0) num>
                                             (= delta< 0.0) num<
                                             :else          nil)]
@@ -60,7 +60,8 @@
 
 (defn favorite-number
   "List of phrases which can be used instead of the number. Like `a half`"
-  [value language] (-> config language :favorite-numbers (get value)))
+  [value language]
+  (-> config language :favorite-numbers (get value)))
 
 (s/fdef favorite-number
   :args (s/cat :relation ::nd/given-value :lang ::nd/language)
@@ -74,7 +75,7 @@
 
 (defn possible-relation
   "Get the relation which is possible in the current given value approximations.
-  If we have regular case with all three (less,more,equal) detected then return it
+  If we have regular case with all three (less,more,around) detected then return it
   else first check if we have 'equal' relation, if this is not present go for 'around'"
   [given-val-relations requested-relation]
   (let [relation-types (set (keys given-val-relations))]
@@ -90,24 +91,29 @@
    (numeric-expression actual-value scale :en relation formatting))
   ([actual-value scale language relation formatting]
    (let [relations       (numeric-relations actual-value scale)
-         actual-relation (possible-relation relations relation)
-         given-value     (get relations actual-relation)
-         fav-num         (first (favorite-number given-value language))]
-     (format "%s %s"
-             (first (hedge actual-relation language))
-             (condp = formatting
-               ::nd/numbers (number-with-precision given-value scale)
-               ::nd/words   (or fav-num (number->text given-value language))
-               ::nd/bites
-               ;;FIXME this part is not good, plus revisit
-               ;; `number-with-precision` it has to work for `numbers`
-               (if (or (rational? given-value)
-                                    (ratio? given-value)
-                                    (< scale 1))
-                              (number-with-precision given-value scale)
-                              (number->bitesize given-value)))))))
+         actual-relation (possible-relation relations relation)]
+     (when actual-relation
+       (let [given-value (get relations actual-relation)
+             fav-num (first (favorite-number given-value language))]
+         (format "%s %s"
+                 (first (hedge actual-relation language))
+                 (condp = formatting
+                   ::nd/numbers (number-with-precision given-value scale)
+                   ::nd/words (or fav-num (number->text given-value language))
+                   ::nd/bites
+                   ;;FIXME this part is not good, plus revisit
+                   ;; `number-with-precision` it has to work for `numbers`
+                   (if (or (rational? given-value)
+                           (ratio? given-value)
+                           (< scale 1))
+                     (number-with-precision given-value scale)
+                     (number->bitesize given-value)))))))))
 
 (s/fdef numeric-expression
-  :args (s/cat :num ::nd/actual-value :scale ::nd/scale :lang ::nd/language
-               :relation ::nd/relation :formatting ::nd/formatting)
-  :ret string?)
+  :args (s/cat :num ::nd/actual-value
+               :scale ::nd/scale
+               :lang ::nd/language
+               :relation ::nd/relation
+               :formatting ::nd/formatting)
+  :ret (s/or :has-expression string?
+             :no-expression nil?))

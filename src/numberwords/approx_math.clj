@@ -38,4 +38,4 @@
   [actual-value scale]
   ;; 1000x difference between the scale and value is a random choice
   (or (< 1000 (/ actual-value scale))
-      (and (< 1 scale) (< actual-value scale))))
+      #_(and (< 1 scale) (< actual-value scale))))
